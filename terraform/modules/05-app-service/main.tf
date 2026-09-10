@@ -24,6 +24,7 @@ resource "azurerm_linux_web_app" "this" {
     http2_enabled                 = true
     minimum_tls_version           = "1.2"
     ip_restriction_default_action = length(var.allowed_inbound_ip_ranges) > 0 ? "Deny" : "Allow"
+    startup_command               = "bash /home/site/wwwroot/startup.sh"
 
     application_stack {
       python_version = var.runtime_stack
