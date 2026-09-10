@@ -1,6 +1,11 @@
 name: Deploy application
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - '.github/workflows/deploy-app.yml'
   workflow_dispatch:
     inputs:
       environment:
@@ -15,7 +20,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment || 'mvp' }}
     steps:
       - uses: actions/checkout@v4
       # MVP: Using Secret auth instead of OIDC for simplicity
