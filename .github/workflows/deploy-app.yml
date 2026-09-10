@@ -34,4 +34,5 @@ jobs:
           package: ./app
       - name: Configure startup command
         run: |
-          az webapp config set --resource-group northwind --name ${{ vars.AZURE_WEBAPP_NAME }} --startup-file "bash /home/site/wwwroot/startup.sh"
+          RG_NAME=$(az webapp show --name ${{ vars.AZURE_WEBAPP_NAME }} --query resourceGroup -o tsv)
+          az webapp config set --resource-group "$RG_NAME" --name ${{ vars.AZURE_WEBAPP_NAME }} --startup-file "bash /home/site/wwwroot/startup.sh"
