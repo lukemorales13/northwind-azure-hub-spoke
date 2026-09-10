@@ -69,6 +69,12 @@ variable "sales_app_subnet_name" {
   default     = "snet-app-ventas"
 }
 
+variable "private_endpoint_subnet_name" {
+  description = "Nombre de la subnet que aloja private endpoints."
+  type        = string
+  default     = "snet-private-endpoints-ops"
+}
+
 variable "hub_to_spoke_peer" {
   description = "Nombre del peering Hub -> Spoke."
   type        = string

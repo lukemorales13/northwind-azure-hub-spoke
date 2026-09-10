@@ -19,7 +19,7 @@ resource "azurerm_linux_web_app" "this" {
   }
 
   site_config {
-    always_on                     = var.app_service_plan_sku == "B1" ? false : true
+    always_on                     = contains(["F1", "D1", "B1"], var.app_service_plan_sku) ? false : true
     ftps_state                    = "Disabled"
     http2_enabled                 = true
     minimum_tls_version           = "1.2"
@@ -47,9 +47,8 @@ resource "azurerm_linux_web_app" "this" {
   tags = var.tags
 }
 
-resource "azurerm_app_service_virtual_network_swift_connection" "vnet_integration" {
-  count = var.app_subnet_id != "" ? 1 : 0
-
-  app_service_id = azurerm_linux_web_app.this.id
-  subnet_id      = var.app_subnet_id
-}
+# VNET integration disabled for Free Tier (F1) - uncomment when upgrading to B1/D1
+# resource "azurerm_app_service_virtual_network_swift_connection" "vnet_integration" {
+#   app_service_id = azurerm_linux_web_app.this.id
+#   subnet_id      = var.app_subnet_id
+# }

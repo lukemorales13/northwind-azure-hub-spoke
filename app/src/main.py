@@ -1,6 +1,8 @@
 from flask import Flask
-import config
-from routes.health import health_bp
+
+# Use package-relative imports so `src` can be imported when `app` is on PYTHONPATH
+from . import config
+from .routes.health import health_bp
 
 
 def create_app():

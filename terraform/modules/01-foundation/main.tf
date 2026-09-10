@@ -49,10 +49,11 @@ resource "azurerm_subnet" "hub" {
 resource "azurerm_subnet" "spoke_ops" {
   for_each = var.spoke_subnets
 
-  name                 = each.key
-  resource_group_name  = azurerm_resource_group.this.name
-  virtual_network_name = azurerm_virtual_network.spoke_ops.name
-  address_prefixes     = [each.value]
+  name                              = each.key
+  resource_group_name               = azurerm_resource_group.this.name
+  virtual_network_name              = azurerm_virtual_network.spoke_ops.name
+  address_prefixes                  = [each.value]
+  private_endpoint_network_policies = each.key == var.private_endpoint_subnet_name ? "Disabled" : "Enabled"
 
   dynamic "delegation" {
     for_each = each.key == var.app_subnet_name ? [1] : []

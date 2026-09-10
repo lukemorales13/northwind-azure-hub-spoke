@@ -1,13 +1,8 @@
-/* 
-  Este archivo normaliza -> en minusculas y sin espacios la variable East US 
-  Genera la nomenclatura -> plantilla base con las variables de project, env & location
-  Dicccionario de nombres -> estandarización para resource g, hub & spokes 
-  Diccionario de tags -> Gobernanza agrupando metadatos.  Al desplegar un recurso solo pasas tags = local.common_tags
-*/
-
 locals {
   normalized_location = lower(replace(var.location, " ", ""))
   name_suffix         = "${lower(var.project)}-${lower(var.environment)}-${local.normalized_location}"
+  compact_name_suffix = replace(local.name_suffix, "-", "")
+  storage_name_suffix = substr(replace(local.name_suffix, "-", ""), 0, 20)
   project_tag         = "${lower(var.project)}-${lower(var.environment)}"
 
   names = {
@@ -21,6 +16,39 @@ locals {
     sales_to_hub_peer = "peer-ventas-to-hub-${lower(var.environment)}"
   }
 
+  private_dns_zones = merge(
+    var.enable_storage ? { blob = "privatelink.blob.core.windows.net" } : {},
+    var.enable_sql_database ? { sql = "privatelink.database.windows.net" } : {},
+    var.enable_key_vault ? { keyvault = "privatelink.vaultcore.azure.net" } : {}
+  )
+
+  private_endpoints = var.enable_private_endpoints ? merge(
+    var.enable_storage ? {
+      storage_blob = {
+        subnet_id                      = module.foundation.spoke_subnet_ids["snet-private-endpoints-ops"]
+        private_connection_resource_id = module.storage[0].storage_account_id
+        subresource_names              = ["blob"]
+        private_dns_zone_ids           = [module.private_dns[0].private_dns_zone_ids["blob"]]
+      }
+    } : {},
+    var.enable_sql_database ? {
+      sql_server = {
+        subnet_id                      = module.foundation.spoke_subnet_ids["snet-private-endpoints-ops"]
+        private_connection_resource_id = module.sql_database[0].sql_server_id
+        subresource_names              = ["sqlServer"]
+        private_dns_zone_ids           = [module.private_dns[0].private_dns_zone_ids["sql"]]
+      }
+    } : {},
+    var.enable_key_vault ? {
+      key_vault = {
+        subnet_id                      = module.foundation.spoke_subnet_ids["snet-private-endpoints-ops"]
+        private_connection_resource_id = module.key_vault[0].key_vault_id
+        subresource_names              = ["vault"]
+        private_dns_zone_ids           = [module.private_dns[0].private_dns_zone_ids["keyvault"]]
+      }
+    } : {}
+  ) : {}
+
   common_tags = {
     Project     = local.project_tag
     Environment = var.environment
@@ -28,5 +56,6 @@ locals {
     CostCenter  = var.cost_center
     Criticality = var.criticality
     Workload    = var.workload
+    ManagedBy   = "Terraform"
   }
 }
